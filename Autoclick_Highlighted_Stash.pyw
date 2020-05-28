@@ -1,4 +1,5 @@
 from PIL import ImageGrab, Image
+import keyboard
 import pyautogui
 import numpy
 import os
@@ -29,14 +30,16 @@ for y in range(0, len(Y_LOCATIONS)):
 			CORNERS[str(Y_LOCATIONS[y]) + "_" + str(X_LOCATIONS[x])] = True
 
 for corner in CORNERS:
-	start_x_loc = int(corner.split("_")[0])
-	start_y_loc = int(corner.split("_")[1])
+	if keyboard.is_pressed('esc'):
+		sys.exit(0)
+	start_x_loc = int(corner.split("_")[1])
+	start_y_loc = int(corner.split("_")[0])
 	valid = True
-	for x in range(0, 6):
+	for x in range(0, 2):
 		if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - 530)) > 40:
 			valid = False
 			break
-	for y in range(0, 6):
+	for y in range(0, 2):
 		if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - 530)) > 40:
 			valid = False
 			break
@@ -45,6 +48,8 @@ for corner in CORNERS:
 
 pyautogui.keyDown('ctrl')
 for loc in CLICK_LOCATIONS:
+	if keyboard.is_pressed('esc'):
+		sys.exit(0)
 	pyautogui.PAUSE = random.random()*.075 + .025
 	pyautogui.moveTo(loc[1], loc[0])
 	pyautogui.click()

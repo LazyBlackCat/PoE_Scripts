@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import keyboard
 import pyautogui
 import numpy
 import os
@@ -71,6 +72,8 @@ set_1 = []
 # go through each basetype and search for unid rare varients
 for basetype in gear_dict:
 	for base in gear_dict[basetype]["bases"]:
+		if keyboard.is_pressed('esc'):
+			sys.exit(0)
 		# short circuit
 		if count == wanted_count:
 			continue
@@ -87,16 +90,18 @@ for basetype in gear_dict:
 		screenshot_array = numpy.array(screenshot)
 		# check corners for highlight color
 		for cell_loc in cell_map:
+			if keyboard.is_pressed('esc'):
+				sys.exit(0)
 			if count == wanted_count:
 				continue
 			start_x_loc = int(cell_loc.split("_")[0])
 			start_y_loc = int(cell_loc.split("_")[1])
 			valid = True
-			for x in range(0, 6):
+			for x in range(0, 3):
 				if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 					valid = False
 					break
-			for y in range(0, 6):
+			for y in range(0, 3):
 				if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 					valid = False
 					break
@@ -106,11 +111,11 @@ for basetype in gear_dict:
 					end_x_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][0])
 					end_y_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][1])
 					valid = True
-					for x in range(0, 6):
+					for x in range(0, 3):
 						if (abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 							valid = False
 							break
-					for y in range(0, 6):
+					for y in range(0, 3):
 						if (abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 							valid = False
 							break
@@ -141,6 +146,8 @@ for basetype in gear_dict:
 # run set 1
 pyautogui.keyDown('ctrl')
 for loc in set_1:
+	if keyboard.is_pressed('esc'):
+		sys.exit(0)
 	pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 	pyautogui.moveTo(loc[0], loc[1])
 	pyautogui.click()

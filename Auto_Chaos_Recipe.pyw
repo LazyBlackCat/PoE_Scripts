@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import keyboard
 import pyautogui
 import numpy
 import os
@@ -122,11 +123,16 @@ set_2 = []
 
 set_1_count = 0
 set_2_count = 0
+no_set_2 = False
 
 # go through each basetype and search for unid rare varients
 for basetype in gear_dict:
 	gear_dict[basetype]["count"] = 0
+	if set_1_count > set_2_count:
+		no_set_2 = True
 	for base in gear_dict[basetype]["bases"]:
+		if keyboard.is_pressed('esc'):
+			sys.exit(0)
 		# 2 weapons or 1 bow
 		if gear_dict["weapons"]["count"] > 2:
 			gear_dict["bows"]["count"] = 2
@@ -135,6 +141,10 @@ for basetype in gear_dict:
 		# short circuit
 		if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 			continue
+		if no_set_2:
+			if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]/2:
+				continue
+
 		# text field filter
 		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(CLEAR_LOCATION[0], CLEAR_LOCATION[1])
@@ -148,50 +158,53 @@ for basetype in gear_dict:
 		screenshot_array = numpy.array(screenshot)
 		# check corners for highlight color
 		for cell_loc in cell_map:
+			if keyboard.is_pressed('esc'):
+				sys.exit(0)
 			if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 				continue
 			start_x_loc = int(cell_loc.split("_")[0])
 			start_y_loc = int(cell_loc.split("_")[1])
 			valid = True
-			for x in range(0, 6):
+			for x in range(0, 2):
 				if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 					valid = False
 					break
-			for y in range(0, 6):
+			for y in range(0, 2):
 				if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 					valid = False
 					break
 			if valid:
-				print ("VALID 1")
 				# Check if there is a nxm highlighted rectangle at that location
 				if gear_dict[basetype]["dimension"] in cell_map[cell_loc]:
 					end_x_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][0])
 					end_y_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][1])
 					valid = True
-					for x in range(0, 6):
+					for x in range(0, 2):
 						if (abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 							valid = False
 							break
-					for y in range(0, 6):
+					for y in range(0, 2):
 						if (abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
 							valid = False
 							break
 					if valid:
-						print ("VALID 2")
 						# Check six sockets
-						six_socket = True
-						abs_red = 255
-						abs_green = 255
-						abs_blue = 255
-						for offset in SIX_SOCKET_OFFSETS_ARMOUR:
-							test_pixel_x = start_x_loc + offset[0]
-							test_pixel_y = start_y_loc + offset[1]
-							r,g,b = screenshot_array[test_pixel_y][test_pixel_x]
-							abs_red = abs(r-SOCKET_RGB[0])
-							abs_green = abs(g-SOCKET_RGB[1])
-							abs_blue = abs(b-SOCKET_RGB[2])
-							if not (abs_red + abs_green + abs_blue < SOCKET_RGB_THRESHOLD):
-								six_socket = False
+						if basetype == "armour":
+							six_socket = True
+							abs_red = 255
+							abs_green = 255
+							abs_blue = 255
+							for offset in SIX_SOCKET_OFFSETS_ARMOUR:
+								test_pixel_x = start_x_loc + offset[0]
+								test_pixel_y = start_y_loc + offset[1]
+								r,g,b = screenshot_array[test_pixel_y][test_pixel_x]
+								abs_red = abs(r-SOCKET_RGB[0])
+								abs_green = abs(g-SOCKET_RGB[1])
+								abs_blue = abs(b-SOCKET_RGB[2])
+								if not (abs_red + abs_green + abs_blue < SOCKET_RGB_THRESHOLD):
+									six_socket = False
+						else:
+							six_socket = False
 						# Add the gear location to the apporpriate set
 						if not six_socket:
 							if gear_dict[basetype]["count"] < (gear_dict[basetype]["wanted_count"]/2):
@@ -205,15 +218,22 @@ for basetype in gear_dict:
 									set_2_count += 1
 								set_2_count += 1
 							gear_dict[basetype]["count"] += 1
+
 	# if missing all of any gear piece short circuit
 	if (gear_dict[basetype]["count"] == 0):
-		print ("Missing %s" % basetype)
 		break
+
+# Clear selection if found set
+if set_1_count == 10:
+	pyautogui.moveTo(CLEAR_LOCATION[0], CLEAR_LOCATION[1])
+	pyautogui.click()
 
 # run set 1 if its complete
 if set_1_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_1:
+		if keyboard.is_pressed('esc'):
+			sys.exit(0)
 		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(loc[0], loc[1])
 		pyautogui.click()
@@ -223,6 +243,8 @@ if set_1_count == 10:
 if set_2_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_2:
+		if keyboard.is_pressed('esc'):
+			sys.exit(0)
 		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(loc[0], loc[1])
 		pyautogui.click()
