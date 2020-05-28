@@ -26,7 +26,7 @@ SIX_SOCKET_OFFSETS_ARMOUR = [[-9, 69]]
 
 BASE_DURATION = .025
 VARIANCE = .025
-SCREENSHOT_DELAY = .2
+SCREENSHOT_DELAY = .25
 HIGHLIGHT_RGB_SUM = 530
 MATCH_THRESHOLD = 40
 SOCKET_RGB = [163, 152, 120,]
@@ -39,6 +39,20 @@ gear_dict["armour"] = {
 					  	"dimension": "2x3",
 					  	"count": 0,
 					  	"wanted_count": 2,
+					}
+
+gear_dict["bows"] = {
+						"bases": ["bow"],
+					  	"dimension": "2x3",
+					  	"count": 0,
+					  	"wanted_count": 2,
+					}
+					
+gear_dict["weapons"] = {
+						"bases": ["wand", "dagger", "sword", "cutlass"],
+					  	"dimension": "1x3",
+					  	"count": 0,
+					  	"wanted_count": 4,
 					}
 
 gear_dict["helmet"] = {
@@ -58,20 +72,6 @@ gear_dict["gloves"] = {
 gear_dict["boots"] = {
 						"bases": ["boots", "greaves", "slippers"],
 					  	"dimension": "2x2",
-					  	"count": 0,
-					  	"wanted_count": 2,
-					}
-
-gear_dict["weapons"] = {
-						"bases": ["wand", "dagger", "sword", "cutlass"],
-					  	"dimension": "1x3",
-					  	"count": 0,
-					  	"wanted_count": 4,
-					}
-
-gear_dict["bows"] = {
-						"bases": ["bow"],
-					  	"dimension": "2x3",
 					  	"count": 0,
 					  	"wanted_count": 2,
 					}
@@ -219,6 +219,17 @@ for basetype in gear_dict:
 								set_2_count += 1
 							gear_dict[basetype]["count"] += 1
 
+		if base == "wand":
+			if gear_dict[basetype]["count"] == 1:
+				gear_dict[basetype]["count"] -= 1
+				set_1_count -= 1
+				set_1 = set_1[:-1]
+			if gear_dict[basetype]["count"] == 3:
+				gear_dict[basetype]["count"] -= 1
+				set_2_count -= 1
+				set_2 = set_2[:-1]
+
+
 	# if missing all of any gear piece short circuit
 	if (gear_dict[basetype]["count"] == 0):
 		break
@@ -228,8 +239,21 @@ if set_1_count == 10:
 	pyautogui.moveTo(CLEAR_LOCATION[0], CLEAR_LOCATION[1])
 	pyautogui.click()
 
+if set_1_count == 10 and set_2_count == 10:
+	combined = [None]*(len(set_1_count)+len(set_2_count))
+	combined[::2] = set_1_count
+	combined[1::2] = set_2_count
+	pyautogui.keyDown('ctrl')
+	for loc in combined:
+		if keyboard.is_pressed('esc'):
+			sys.exit(0)
+		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
+		pyautogui.moveTo(loc[0], loc[1])
+		pyautogui.click()
+	pyautogui.keyUp('ctrl')
+
 # run set 1 if its complete
-if set_1_count == 10:
+elif set_1_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_1:
 		if keyboard.is_pressed('esc'):
@@ -240,7 +264,7 @@ if set_1_count == 10:
 	pyautogui.keyUp('ctrl')
 
 # run set 2 if its complete
-if set_2_count == 10:
+elif set_2_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_2:
 		if keyboard.is_pressed('esc'):
