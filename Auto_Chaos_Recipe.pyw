@@ -17,11 +17,19 @@ Y_OFFSET = 162
 X_LOCATIONS = [x + X_OFFSET for x in X_LOCATIONS]
 Y_LOCATIONS = [y + Y_OFFSET for y in Y_LOCATIONS]
 
-QUERY = "rare %s"
+QUERY = "unid rare %s"
 CLEAR_LOCATION = [633, 895]
 QUERY_LOCATION = [475, 895]
 
 SIX_SOCKET_OFFSETS_ARMOUR = [[-9, 69]]
+
+BASE_DURATION = .025
+VARIANCE = .025
+SCREENSHOT_DELAY = .2
+HIGHLIGHT_RGB_SUM = 530
+MATCH_THRESHOLD = 40
+SOCKET_RGB = [163, 152, 120,]
+SOCKET_RGB_THRESHOLD = 150
 
 # Init possible pieces of gear for recipe
 gear_dict = OrderedDict()
@@ -109,94 +117,113 @@ for x_start in range(1, len(X_LOCATIONS)):
 					cell_key = "%sx%s" % (x_range, y_range)
 					cell_map[map_key][cell_key] = [end_x, end_y]
 
-with open('cell_mapping.json', 'w') as fp:
-    json.dump(cell_map, fp, indent=4)
-
 set_1 = []
 set_2 = []
 
 set_1_count = 0
 set_2_count = 0
 
-
 # go through each basetype and search for unid rare varients
 for basetype in gear_dict:
 	gear_dict[basetype]["count"] = 0
 	for base in gear_dict[basetype]["bases"]:
+		# 2 weapons or 1 bow
 		if gear_dict["weapons"]["count"] > 2:
 			gear_dict["bows"]["count"] = 2
 		elif gear_dict["weapons"]["count"] > 0:
 			gear_dict["bows"]["count"] = 1
+		# short circuit
 		if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 			continue
-		pyautogui.PAUSE = random.random()*.025 + .025
+		# text field filter
+		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(CLEAR_LOCATION[0], CLEAR_LOCATION[1])
 		pyautogui.click()
 		pyautogui.moveTo(QUERY_LOCATION[0], QUERY_LOCATION[1])
 		pyautogui.click()
 		pyautogui.write(QUERY % base, random.random()*(.005) + .0075)
-		time.sleep(.2)
+		# take screenshot with filter
+		time.sleep(SCREENSHOT_DELAY)
 		screenshot = ImageGrab.grab()
 		screenshot_array = numpy.array(screenshot)
+		# check corners for highlight color
 		for cell_loc in cell_map:
 			if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 				continue
 			start_x_loc = int(cell_loc.split("_")[0])
 			start_y_loc = int(cell_loc.split("_")[1])
-			if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc]) - 530) < 20
-			   and abs(numpy.sum(screenshot_array[start_y_loc + 1][start_x_loc]) - 530) < 20
-			   and abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - 1]) - 530) < 20):
+			valid = True
+			for x in range(0, 6):
+				if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+					valid = False
+					break
+			for y in range(0, 6):
+				if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+					valid = False
+					break
+			if valid:
+				print ("VALID 1")
+				# Check if there is a nxm highlighted rectangle at that location
 				if gear_dict[basetype]["dimension"] in cell_map[cell_loc]:
 					end_x_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][0])
 					end_y_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][1])
-					if (abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc]) - 530) < 20
-					   and abs(numpy.sum(screenshot_array[end_y_loc - 1][end_x_loc]) - 530) < 20
-					   and abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + 1]) - 530) < 20):
-
-					# Check six sockets
+					valid = True
+					for x in range(0, 6):
+						if (abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+							valid = False
+							break
+					for y in range(0, 6):
+						if (abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+							valid = False
+							break
+					if valid:
+						print ("VALID 2")
+						# Check six sockets
 						six_socket = True
+						abs_red = 255
+						abs_green = 255
+						abs_blue = 255
 						for offset in SIX_SOCKET_OFFSETS_ARMOUR:
 							test_pixel_x = start_x_loc + offset[0]
 							test_pixel_y = start_y_loc + offset[1]
 							r,g,b = screenshot_array[test_pixel_y][test_pixel_x]
-							average_red = abs(r-163)
-							average_green = abs(g-152)
-							average_blue = abs(b-120)
-							if not (average_red + average_green + average_blue < 150):
+							abs_red = abs(r-SOCKET_RGB[0])
+							abs_green = abs(g-SOCKET_RGB[1])
+							abs_blue = abs(b-SOCKET_RGB[2])
+							if not (abs_red + abs_green + abs_blue < SOCKET_RGB_THRESHOLD):
 								six_socket = False
-
+						# Add the gear location to the apporpriate set
 						if not six_socket:
 							if gear_dict[basetype]["count"] < (gear_dict[basetype]["wanted_count"]/2):
 								set_1.append([start_x_loc-10, start_y_loc+10])
 								if basetype == "bows":
 									set_1_count += 1
 								set_1_count += 1
-
-
 							else:
 								set_2.append([start_x_loc-10, start_y_loc+10])
 								if basetype == "bows":
 									set_2_count += 1
 								set_2_count += 1
 							gear_dict[basetype]["count"] += 1
+	# if missing all of any gear piece short circuit
 	if (gear_dict[basetype]["count"] == 0):
+		print ("Missing %s" % basetype)
 		break
 
-pyautogui.moveTo(CLEAR_LOCATION[0], CLEAR_LOCATION[1])
-pyautogui.click()
-
+# run set 1 if its complete
 if set_1_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_1:
-		pyautogui.PAUSE = random.random()*.025 + .025
+		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(loc[0], loc[1])
 		pyautogui.click()
 	pyautogui.keyUp('ctrl')
 
+# run set 2 if its complete
 if set_2_count == 10:
 	pyautogui.keyDown('ctrl')
 	for loc in set_2:
-		pyautogui.PAUSE = random.random()*.025 + .025
+		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
 		pyautogui.moveTo(loc[0], loc[1])
 		pyautogui.click()
 	pyautogui.keyUp('ctrl')

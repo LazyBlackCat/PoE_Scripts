@@ -10,6 +10,12 @@ Y_LOCATIONS = [ 0, 25, 26, 51, 52, 78, 79, 104, 105, 130, 131, 157, 158, 183, 18
 CORNERS = {}
 CLICK_LOCATIONS = []
 
+X_OFFSET = 17
+Y_OFFSET = 162
+
+X_LOCATIONS = [x + X_OFFSET for x in X_LOCATIONS]
+Y_LOCATIONS = [y + Y_OFFSET for y in Y_LOCATIONS]
+
 screenshot = ImageGrab.grab()
 screenshot_array = numpy.array(screenshot)
 
@@ -18,21 +24,24 @@ screenshot_array = numpy.array(screenshot)
 # rgb == 231, 180, 119, sum 530
 
 for y in range(0, len(Y_LOCATIONS)):
-	for x in range(0, len(X_LOCATIONS)):
-		if x % 2 == 0 and y % 2 == 0:
+	for x in range(1, len(X_LOCATIONS)):
+		if x % 2 == 1 and y % 2 == 0:
 			CORNERS[str(Y_LOCATIONS[y]) + "_" + str(X_LOCATIONS[x])] = True
 
-y_offset = 0
-for y in range(162, 793):
-	x_offset = 0
-	for x in range(17, 649):
-		if str(y_offset) + "_" + str(x_offset) in CORNERS:
-			if abs(numpy.sum(screenshot_array[y+1][x]) - 530) < 2:
-				if abs(numpy.sum(screenshot_array[y][x+1]) - 530) < 2:
-					CLICK_LOCATIONS.append([y+10, x+10])
-
-		x_offset += 1
-	y_offset += 1
+for corner in CORNERS:
+	start_x_loc = int(corner.split("_")[0])
+	start_y_loc = int(corner.split("_")[1])
+	valid = True
+	for x in range(0, 6):
+		if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - 530)) > 40:
+			valid = False
+			break
+	for y in range(0, 6):
+		if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - 530)) > 40:
+			valid = False
+			break
+	if valid:
+		CLICK_LOCATIONS.append([start_y_loc+10, start_x_loc-10])
 
 pyautogui.keyDown('ctrl')
 for loc in CLICK_LOCATIONS:
