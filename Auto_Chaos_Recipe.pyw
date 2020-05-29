@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import argparse
 import keyboard
 import pyautogui
 import numpy
@@ -8,6 +9,14 @@ import time
 import random
 import json
 import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug',action="store_true", help='Enable debug mode', )
+# parser.add_argument('-v', '--vulcan',action="store_true", help='Changes read values to the corresponding Vulcan equivalents', )
+args = parser.parse_args()
+
+DEBUG = True if args.debug else False
+HIGHLIGHT_RGB_SUM = 530
 
 X_LOCATIONS = [0, 25, 26, 52, 53, 78, 79, 104, 105, 131, 132, 157, 158, 183, 184, 209, 210, 236, 237, 262, 263, 288, 289, 315, 316, 341, 342, 367, 368, 394, 395, 420, 421, 446, 447, 473, 474, 499, 500, 525, 526, 552, 553, 578, 579, 604, 605, 631]
 Y_LOCATIONS = [ 0, 25, 26, 51, 52, 78, 79, 104, 105, 130, 131, 157, 158, 183, 184, 209, 210, 236, 237, 262, 263, 288, 289, 315, 316, 341, 342, 367, 368, 394, 395, 420, 421, 446, 447, 473, 474, 499, 500, 525, 526, 551, 552, 578, 579, 604, 605, 630]
@@ -26,8 +35,7 @@ SIX_SOCKET_OFFSETS_ARMOUR = [[-9, 69]]
 
 BASE_DURATION = .025
 VARIANCE = .025
-SCREENSHOT_DELAY = .25
-HIGHLIGHT_RGB_SUM = 530
+SCREENSHOT_DELAY = .15
 MATCH_THRESHOLD = 40
 SOCKET_RGB = [163, 152, 120,]
 SOCKET_RGB_THRESHOLD = 150
@@ -120,10 +128,16 @@ for x_start in range(1, len(X_LOCATIONS)):
 
 set_1 = []
 set_2 = []
+consumed_cells = []
 
 set_1_count = 0
 set_2_count = 0
 no_set_2 = False
+
+if DEBUG:
+	screenshot = ImageGrab.grab()
+	og_sc = numpy.array(screenshot)
+	print (og_sc[162][69])
 
 # go through each basetype and search for unid rare varients
 for basetype in gear_dict:
@@ -134,16 +148,19 @@ for basetype in gear_dict:
 		if keyboard.is_pressed('esc'):
 			sys.exit(0)
 		# 2 weapons or 1 bow
-		if gear_dict["weapons"]["count"] > 2:
-			gear_dict["bows"]["count"] = 2
-		elif gear_dict["weapons"]["count"] > 0:
-			gear_dict["bows"]["count"] = 1
+		if gear_dict["bows"]["count"] == 2:
+			gear_dict["weapons"]["count"] = 4
+		elif gear_dict["bows"]["count"] == 1:
+			gear_dict["weapons"]["count"] = 2
 		# short circuit
 		if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 			continue
 		if no_set_2:
 			if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]/2:
 				continue
+
+		if DEBUG:
+			print(base)
 
 		# text field filter
 		pyautogui.PAUSE = random.random() * VARIANCE + BASE_DURATION
@@ -160,34 +177,51 @@ for basetype in gear_dict:
 		for cell_loc in cell_map:
 			if keyboard.is_pressed('esc'):
 				sys.exit(0)
+			if cell_loc in consumed_cells:
+				continue
 			if gear_dict[basetype]["count"] == gear_dict[basetype]["wanted_count"]:
 				continue
 			start_x_loc = int(cell_loc.split("_")[0])
 			start_y_loc = int(cell_loc.split("_")[1])
 			valid = True
-			for x in range(0, 2):
-				if (abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+			for x in range(0, 6):
+				if abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
+					if DEBUG:
+						og_sc[start_y_loc][start_x_loc - x] = [255, 150, 150]
 					valid = False
 					break
-			for y in range(0, 2):
-				if (abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+			for y in range(0, 6):
+				if abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
+					if DEBUG:
+						og_sc[start_y_loc + y][start_x_loc] = [255, 150, 150]
 					valid = False
 					break
+
 			if valid:
+				if DEBUG:
+					print (start_x_loc, start_y_loc, screenshot_array[start_y_loc][start_x_loc])
+					print ("VALID 1")
+
 				# Check if there is a nxm highlighted rectangle at that location
 				if gear_dict[basetype]["dimension"] in cell_map[cell_loc]:
 					end_x_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][0])
 					end_y_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][1])
 					valid = True
-					for x in range(0, 2):
-						if (abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+					for x in range(0, 6):
+						if abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
+							if DEBUG:
+								og_sc[end_y_loc][end_x_loc + x] = [255, 150, 150]
 							valid = False
 							break
-					for y in range(0, 2):
-						if (abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM)) > MATCH_THRESHOLD:
+					for y in range(0, 6):
+						if abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
+							if DEBUG:
+								og_sc[end_y_loc - y][end_x_loc] = [255, 150, 150]
 							valid = False
 							break
 					if valid:
+						if DEBUG:
+							print ("VALID 2")
 						# Check six sockets
 						if basetype == "armour":
 							six_socket = True
@@ -212,12 +246,25 @@ for basetype in gear_dict:
 								if basetype == "bows":
 									set_1_count += 1
 								set_1_count += 1
+								if DEBUG:
+									print ("Added to set 1")
 							else:
 								set_2.append([start_x_loc-10, start_y_loc+10])
 								if basetype == "bows":
 									set_2_count += 1
 								set_2_count += 1
+								if DEBUG:
+									print ("Added to set 2")
 							gear_dict[basetype]["count"] += 1
+							if DEBUG:
+								for y in range(0, end_y_loc - start_y_loc):
+									og_sc[start_y_loc + y][start_x_loc] = [150, 255, 150]
+									og_sc[start_y_loc + y][end_x_loc] = [150, 255, 150]
+
+								for x in range(0, start_x_loc - end_x_loc):
+									og_sc[start_y_loc][start_x_loc - x] = [150, 255, 150]
+									og_sc[end_y_loc][start_x_loc - x] = [150, 255, 150]
+						consumed_cells.append(cell_loc)
 
 		if base == "wand":
 			if gear_dict[basetype]["count"] == 1:
@@ -228,7 +275,6 @@ for basetype in gear_dict:
 				gear_dict[basetype]["count"] -= 1
 				set_2_count -= 1
 				set_2 = set_2[:-1]
-
 
 	# if missing all of any gear piece short circuit
 	if (gear_dict[basetype]["count"] == 0):
@@ -273,3 +319,6 @@ elif set_2_count == 10:
 		pyautogui.moveTo(loc[0], loc[1])
 		pyautogui.click()
 	pyautogui.keyUp('ctrl')
+
+if DEBUG:
+	Image.fromarray(og_sc).save("Chaos_Recipe_Debug_Map.png")

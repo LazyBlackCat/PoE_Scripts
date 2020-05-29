@@ -6,6 +6,12 @@ import os
 import time
 import random
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug',action="store_true", help='Enable debug mode', )
+args = parser.parse_args()
+
+DEBUG = True if args.debug else False
+
 X_LOCATIONS = [0, 25, 26, 52, 53, 78, 79, 104, 105, 131, 132, 157, 158, 183, 184, 209, 210, 236, 237, 262, 263, 288, 289, 315, 316, 341, 342, 367, 368, 394, 395, 420, 421, 446, 447, 473, 474, 499, 500, 525, 526, 552, 553, 578, 579, 604, 605, 631]
 Y_LOCATIONS = [ 0, 25, 26, 51, 52, 78, 79, 104, 105, 130, 131, 157, 158, 183, 184, 209, 210, 236, 237, 262, 263, 288, 289, 315, 316, 341, 342, 367, 368, 394, 395, 420, 421, 446, 447, 473, 474, 499, 500, 525, 526, 551, 552, 578, 579, 604, 605, 630]
 CORNERS = {}
@@ -19,10 +25,6 @@ Y_LOCATIONS = [y + Y_OFFSET for y in Y_LOCATIONS]
 
 screenshot = ImageGrab.grab()
 screenshot_array = numpy.array(screenshot)
-
-# starts at 17, 162
-# ends at 648, 792
-# rgb == 231, 180, 119, sum 530
 
 for y in range(0, len(Y_LOCATIONS)):
 	for x in range(1, len(X_LOCATIONS)):
