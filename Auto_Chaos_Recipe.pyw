@@ -184,13 +184,13 @@ for basetype in gear_dict:
 			start_x_loc = int(cell_loc.split("_")[0])
 			start_y_loc = int(cell_loc.split("_")[1])
 			valid = True
-			for x in range(0, 6):
+			for x in range(0, 2):
 				if abs(numpy.sum(screenshot_array[start_y_loc][start_x_loc - x]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
 					if DEBUG:
 						og_sc[start_y_loc][start_x_loc - x] = [255, 150, 150]
 					valid = False
 					break
-			for y in range(0, 6):
+			for y in range(0, 2):
 				if abs(numpy.sum(screenshot_array[start_y_loc + y][start_x_loc]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
 					if DEBUG:
 						og_sc[start_y_loc + y][start_x_loc] = [255, 150, 150]
@@ -207,13 +207,13 @@ for basetype in gear_dict:
 					end_x_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][0])
 					end_y_loc = int(cell_map[cell_loc][gear_dict[basetype]["dimension"]][1])
 					valid = True
-					for x in range(0, 6):
+					for x in range(0, 2):
 						if abs(numpy.sum(screenshot_array[end_y_loc][end_x_loc + x]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
 							if DEBUG:
 								og_sc[end_y_loc][end_x_loc + x] = [255, 150, 150]
 							valid = False
 							break
-					for y in range(0, 6):
+					for y in range(0, 2):
 						if abs(numpy.sum(screenshot_array[end_y_loc - y][end_x_loc]) - HIGHLIGHT_RGB_SUM) > MATCH_THRESHOLD:
 							if DEBUG:
 								og_sc[end_y_loc - y][end_x_loc] = [255, 150, 150]
