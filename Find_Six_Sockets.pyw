@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import argparse
 import keyboard
 import pyautogui
 import numpy

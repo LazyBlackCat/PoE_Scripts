@@ -1,4 +1,5 @@
 from PIL import ImageGrab, Image
+import argparse
 import keyboard
 import pyautogui
 import numpy
