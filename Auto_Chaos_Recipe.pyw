@@ -57,7 +57,7 @@ gear_dict["bows"] = {
 					}
 					
 gear_dict["weapons"] = {
-						"bases": ["wand", "dagger", "sword", "cutlass"],
+						"bases": ["wand", "dagger", "sword", "cutlass", "club", "tenderizer"],
 					  	"dimension": "1x3",
 					  	"count": 0,
 					  	"wanted_count": 4,
@@ -224,7 +224,7 @@ for basetype in gear_dict:
 							print ("VALID 2")
 						# Check six sockets
 						if basetype == "armour":
-							six_socket = True
+							six_socket = False
 							abs_red = 255
 							abs_green = 255
 							abs_blue = 255
@@ -277,7 +277,7 @@ for basetype in gear_dict:
 				set_2 = set_2[:-1]
 
 	# if missing all of any gear piece short circuit
-	if (gear_dict[basetype]["count"] == 0) and not basetype == "bows":
+	if (gear_dict[basetype]["count"] < gear_dict[basetype]["wanted_count"]/2) and not basetype == "bows":
 		break
 if DEBUG:
 	print (set_1_count)
@@ -325,3 +325,4 @@ elif set_2_count == 10:
 
 if DEBUG:
 	Image.fromarray(og_sc).save("Chaos_Recipe_Debug_Map.png")
+	print (json.dumps(gear_dict, indent=4))
