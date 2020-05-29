@@ -35,7 +35,7 @@ SIX_SOCKET_OFFSETS_ARMOUR = [[-9, 69]]
 
 BASE_DURATION = .025
 VARIANCE = .025
-SCREENSHOT_DELAY = .15
+SCREENSHOT_DELAY = .2
 MATCH_THRESHOLD = 40
 SOCKET_RGB = [163, 152, 120,]
 SOCKET_RGB_THRESHOLD = 150
@@ -277,8 +277,11 @@ for basetype in gear_dict:
 				set_2 = set_2[:-1]
 
 	# if missing all of any gear piece short circuit
-	if (gear_dict[basetype]["count"] == 0):
+	if (gear_dict[basetype]["count"] == 0) and not basetype == "bows":
 		break
+if DEBUG:
+	print (set_1_count)
+	print (set_2_count)
 
 # Clear selection if found set
 if set_1_count == 10:
@@ -286,9 +289,9 @@ if set_1_count == 10:
 	pyautogui.click()
 
 if set_1_count == 10 and set_2_count == 10:
-	combined = [None]*(len(set_1_count)+len(set_2_count))
-	combined[::2] = set_1_count
-	combined[1::2] = set_2_count
+	combined = [None]*(len(set_1)+len(set_2))
+	combined[::2] = set_1
+	combined[1::2] = set_2
 	pyautogui.keyDown('ctrl')
 	for loc in combined:
 		if keyboard.is_pressed('esc'):
