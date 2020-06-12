@@ -1,4 +1,5 @@
 from PIL import ImageGrab, Image
+import d3dshot
 import argparse
 import keyboard
 import pyautogui
@@ -24,7 +25,9 @@ Y_OFFSET = 162
 X_LOCATIONS = [x + X_OFFSET for x in X_LOCATIONS]
 Y_LOCATIONS = [y + Y_OFFSET for y in Y_LOCATIONS]
 
-screenshot = ImageGrab.grab()
+screenshot = d3dshot.create().screenshot()
+
+# screenshot = ImageGrab.grab()
 screenshot_array = numpy.array(screenshot)
 
 for y in range(0, len(Y_LOCATIONS)):

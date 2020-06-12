@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import d3dshot
 import argparse
 import keyboard
 import pyautogui
@@ -74,7 +75,7 @@ for x_start in range(1, len(X_LOCATIONS)):
 					cell_key = "%sx%s" % (x_range, y_range)
 					cell_map[map_key][cell_key] = [end_x, end_y]
 
-screenshot = ImageGrab.grab()
+screenshot = d3dshot.create().screenshot()
 set_1 = []
 # go through each basetype and search for unid rare varients
 for basetype in gear_dict:
@@ -93,7 +94,7 @@ for basetype in gear_dict:
 		pyautogui.write(QUERY % base, random.random()*(.005) + .0075)
 		# take screenshot with filter
 		time.sleep(SCREENSHOT_DELAY)
-		screenshot = ImageGrab.grab()
+		screenshot = d3dshot.create().screenshot()
 		screenshot_array = numpy.array(screenshot)
 		# check corners for highlight color
 		for cell_loc in cell_map:

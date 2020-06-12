@@ -1,5 +1,6 @@
 from PIL import ImageGrab, Image
 from collections import OrderedDict
+import d3dshot
 import argparse
 import keyboard
 import pyautogui
@@ -27,7 +28,7 @@ Y_OFFSET = 162
 X_LOCATIONS = [x + X_OFFSET for x in X_LOCATIONS]
 Y_LOCATIONS = [y + Y_OFFSET for y in Y_LOCATIONS]
 
-QUERY = "unid rare %s"
+QUERY = "rare %s"
 CLEAR_LOCATION = [633, 895]
 QUERY_LOCATION = [475, 895]
 
@@ -135,7 +136,7 @@ set_2_count = 0
 no_set_2 = False
 
 if DEBUG:
-	screenshot = ImageGrab.grab()
+	screenshot = d3dshot.create().screenshot()
 	og_sc = numpy.array(screenshot)
 	print (og_sc[162][69])
 
@@ -171,7 +172,7 @@ for basetype in gear_dict:
 		pyautogui.write(QUERY % base, random.random()*(.005) + .0075)
 		# take screenshot with filter
 		time.sleep(SCREENSHOT_DELAY)
-		screenshot = ImageGrab.grab()
+		screenshot = d3dshot.create().screenshot()
 		screenshot_array = numpy.array(screenshot)
 		# check corners for highlight color
 		for cell_loc in cell_map:
