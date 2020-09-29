@@ -2,8 +2,10 @@ Repo for Path of Exile scripts
 
 To exit any script hold escape
 
+Edit paths in ahk script to your python install and file locations
+
 Dependencies:
-	python 3
+	python 3 64 bit
 	python -m pip install numpy
 	python -m pip install pillow
 	python -m pip install pyautogui
